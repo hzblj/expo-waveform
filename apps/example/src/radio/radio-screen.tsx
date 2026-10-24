@@ -2,8 +2,9 @@ import {FlagView} from '@hzblj/expo-flags-kit'
 import {useSpeechTranscriber} from '@hzblj/expo-speech'
 import {Box, Chip, EmptyState, Island, RnFlatList, RnText} from '@hzblj/kara-ui'
 import {setAudioModeAsync, useAudioPlayer} from 'expo-audio'
+import {useLocalSearchParams} from 'expo-router'
 import {useCallback, useEffect, useRef, useState} from 'react'
-
+import {capture} from '../capture'
 import {flagCode, MEETING, type RadioClip, SESSIONS} from '../f1/radio'
 import {Caption} from '../ui/format'
 import {togglePlayback} from '../ui/toggle'
@@ -78,6 +79,16 @@ export const RadioScreen = () => {
     },
     [player]
   )
+
+  // `?play=1` (or the `capturePlay` launch argument) plays the session's second message: how the captures start
+  // playback.
+  const play = useLocalSearchParams<{play?: string}>().play ?? capture.play
+  useEffect(() => {
+    const clip = play === undefined ? undefined : clips[Number(play)]
+    if (clip) {
+      start(clip)
+    }
+  }, [clips, play, start])
 
   const onPlay = useCallback(
     (clip: RadioClip) => {

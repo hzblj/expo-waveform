@@ -1953,15 +1953,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hzblj/expo-speech@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@hzblj/expo-speech@npm:0.1.1"
+"@hzblj/expo-speech@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "@hzblj/expo-speech@npm:0.1.3"
   peerDependencies:
     expo: ">=57"
     expo-modules-core: "*"
     react: "*"
     react-native: "*"
-  checksum: 10c0/296cad84195b677a5b83d87ef6f060d91f60ff92d2a6cc289b7fc446fc732e9244e3a619d9621b984cdf3c2204f7dbe8f2e8c751235121822e35d83030606219
+  checksum: 10c0/20632834ef656a2e3960ffbda315d4bf87af59398d4a8da87dcd998e8eb7ad2eeff7dd504f492dd4d05856dd0cc6c02f5f828e6c2d92432afeaaeeac26e33eff
   languageName: node
   linkType: hard
 
@@ -4335,6 +4335,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-device@npm:~57.0.2":
+  version: 57.0.2
+  resolution: "expo-device@npm:57.0.2"
+  dependencies:
+    ua-parser-js: "npm:^0.7.33"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/4cc4df2f7a7410389525a383663a5ce0ae335caa61f59f86ce17062f86f301b43b59529dc2b3d8310c365a13d586820915eee26d2ab942c64f6759a8852472f0
+  languageName: node
+  linkType: hard
+
 "expo-file-system@npm:~57.0.7":
   version: 57.0.7
   resolution: "expo-file-system@npm:57.0.7"
@@ -4598,7 +4609,7 @@ __metadata:
     "@babel/core": "npm:^7.29.7"
     "@expo/ui": "npm:~57.0.26"
     "@hzblj/expo-flags-kit": "npm:^0.1.0"
-    "@hzblj/expo-speech": "npm:^0.1.1"
+    "@hzblj/expo-speech": "npm:^0.1.3"
     "@hzblj/expo-waveform": "workspace:*"
     "@hzblj/kara-ui": "npm:^0.14.1"
     "@lodev09/react-native-true-sheet": "npm:3.11.18"
@@ -4609,6 +4620,7 @@ __metadata:
     expo-build-properties: "npm:~57.0.22"
     expo-constants: "npm:~57.0.22"
     expo-dev-client: "npm:~57.0.20"
+    expo-device: "npm:~57.0.2"
     expo-image: "npm:~57.0.5"
     expo-linking: "npm:~57.0.13"
     expo-router: "npm:~57.0.29"
@@ -7790,6 +7802,15 @@ __metadata:
   bin:
     tsc: bin/tsc
   checksum: 10c0/6b3cdc369cd829d46e00734ea64233ee84419c2825ad8fe408915adde77abced4b7a2401f7eed517d54a7a4f5d1c1869753cb99018df1c2159c761d9f33483a6
+  languageName: node
+  linkType: hard
+
+"ua-parser-js@npm:^0.7.33":
+  version: 0.7.41
+  resolution: "ua-parser-js@npm:0.7.41"
+  bin:
+    ua-parser-js: script/cli.js
+  checksum: 10c0/b134bc0d8da10c76e07740a0ade61c193fd4c4d120ba2cb2530e26931f6b550dd60b6e801d8891f6d9c23dfebadf5590294739069edff94396f173cc8cc5767e
   languageName: node
   linkType: hard
 
