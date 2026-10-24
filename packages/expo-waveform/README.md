@@ -167,6 +167,10 @@ Decoding speed is the platform's: AVFoundation reads a few minutes of audio in a
 
 The [example app](https://github.com/hzblj/expo-waveform/tree/main/apps/example) draws a Formula 1 weekend's team radio (captured from [OpenF1](https://openf1.org)), scrubbed word by word with the words lit as they are said, a playground for every prop, a live meter of the microphone and of the radio, and `loadAsync` on its own.
 
+## More libraries
+
+The other libraries from the same author are at **[libraries.janblazej.dev](https://www.libraries.janblazej.dev)**.
+
 ## License
 
 MIT © Jan Blazej
