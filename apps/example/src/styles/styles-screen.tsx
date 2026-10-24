@@ -43,8 +43,6 @@ const PALETTE = ['accent', '#e10600', '#ff8000', '#27f4d2', '#3671c6', '#229971'
  */
 const ANDROID_ACCENT: ColorValue = PlatformColor('@android:color/system_accent1_200', '?android:attr/colorAccent')
 
-const MONOSPACE = Platform.OS === 'ios' ? 'Menlo' : 'monospace'
-
 const round = (value: number) => Math.round(value * 2) / 2
 
 /** A prop as it would be written, when it is not the default. */
@@ -244,7 +242,7 @@ export const StylesScreen = () => {
 
       <Section title="Code">
         <Box bg="surface.primary" borderRadius="large" p="s16">
-          <RnText selectable style={{fontFamily: MONOSPACE, fontSize: 12, lineHeight: 18}}>
+          <RnText monospaced selectable variant="footnote">
             {`<WaveformView\n${code.map(line => `  ${line}`).join('\n')}\n/>`}
           </RnText>
         </Box>

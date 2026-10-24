@@ -43,7 +43,7 @@ const OPTIONS = SESSIONS.flatMap(session =>
 const Stat = ({label, value}: {label: string; value: string}) => (
   <Box gap="s2" style={{minWidth: '45%'}}>
     <Caption color="content.tertiary">{label}</Caption>
-    <RnText style={{fontVariant: ['tabular-nums']}} variant="headline">
+    <RnText monospacedDigit variant="headline">
       {value}
     </RnText>
   </Box>
