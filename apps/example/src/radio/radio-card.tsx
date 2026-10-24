@@ -4,7 +4,6 @@ import {Box, Image, RnIcon, RnText, useAppTheme} from '@hzblj/kara-ui'
 import {type AudioPlayer, useAudioPlayerStatus} from 'expo-audio'
 import {memo, useMemo, useState} from 'react'
 
-import {withCaptured} from '../f1/captured'
 import {type RadioClip, teamColor} from '../f1/radio'
 import {Caption, formatDuration} from '../ui/format'
 import {Karaoke} from '../ui/karaoke'
@@ -47,10 +46,7 @@ export const RadioCard = memo(({active, clip, onPlay, onSeek, player, transcribe
   const theme = useAppTheme()
   // The words are a bonus here: a message the device cannot transcribe (an iOS simulator has no speech models) is its
   // waveform alone.
-  const {progress, progressPhase, state, transcript} = withCaptured(
-    clip.url,
-    useTranscribe(transcriber, clip.url, {cacheKey: clip.url})
-  )
+  const {progress, progressPhase, state, transcript} = useTranscribe(transcriber, clip.url, {cacheKey: clip.url})
   const playback = useWaveformPlayback(active ? player : null)
   const {wordIndex} = useTranscriptPlayback(transcript, active ? player : null)
   const driver = clip.driver

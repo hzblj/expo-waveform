@@ -23,7 +23,6 @@ import {setAudioModeAsync, useAudioPlayer} from 'expo-audio'
 import {useEffect, useMemo, useState} from 'react'
 import {type ColorValue, Platform, PlatformColor} from 'react-native'
 
-import {withCaptured} from '../f1/captured'
 import {FIRST_CLIP} from '../f1/radio'
 import {Caption, formatDuration, NativeCaption} from '../ui/format'
 import {Section} from '../ui/page'
@@ -60,7 +59,7 @@ export const StylesScreen = () => {
   const theme = useAppTheme()
   const clip = FIRST_CLIP
   const transcriber = useSpeechTranscriber({locale: 'en-GB'})
-  const {transcript} = withCaptured(clip?.url ?? '', useTranscribe(transcriber, clip?.url, {cacheKey: clip?.url}))
+  const {transcript} = useTranscribe(transcriber, clip?.url, {cacheKey: clip?.url})
   const player = useAudioPlayer(clip ? {uri: clip.url} : null, {updateInterval: 250})
   const playback = useWaveformPlayback(player)
 
