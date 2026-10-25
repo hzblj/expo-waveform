@@ -5,6 +5,11 @@
 
 Audio waveforms for Expo, drawn natively on iOS and Android: a file analysed on the device and cached, a playhead that follows the player at the display's frame rate, seeking by drag or tap with haptics, markers, and a live meter for recordings.
 
+<p>
+  <img alt="Team radio's waveforms, in the example on iOS" height="560" src="media/ios-radio.png" />
+  <img alt="The same on Android" height="560" src="media/android-radio.png" />
+</p>
+
 ```sh
 npx expo install @hzblj/expo-waveform
 ```

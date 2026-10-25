@@ -5,6 +5,11 @@
 
 Audio waveforms for Expo, drawn natively on iOS and Android. A file is analysed on the device and cached; the view follows playback at the display's frame rate, seeks by drag or tap with haptics, and meters a recording live.
 
+<p>
+  <img alt="Team radio's waveforms, in the example on iOS" height="560" src="https://raw.githubusercontent.com/hzblj/expo-waveform/main/media/ios-radio.png" />
+  <img alt="The same on Android" height="560" src="https://raw.githubusercontent.com/hzblj/expo-waveform/main/media/android-radio.png" />
+</p>
+
 - **Analysed on the device:** `AVAssetReader` on iOS and `MediaCodec` on Android decode the file off the main thread, and every short stretch becomes its loudness (a root mean square). Local files, remote URLs and bundled assets; mp3, m4a, aac, wav, flac, ogg, and the audio of a video.
 - **Cached:** an analysis is kept in memory and on disk, keyed by the source and the options. A list of voice messages draws each one at once the second time; the same file asked for twice at once is analysed once.
 - **A native view:** bars, a filled envelope or its outline, centred or on the bottom. Paths are built once per size; playback moves a mask (iOS) or a clip (Android), not the data, so it costs next to nothing.
