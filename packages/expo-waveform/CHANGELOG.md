@@ -1,5 +1,11 @@
 # @hzblj/expo-waveform
 
+## 0.1.2
+
+### Patch Changes
+
+- [`67a90d6`](https://github.com/hzblj/expo-waveform/commit/67a90d6ef59754f73e1b8525fb52428c7e5842ed) Thanks [@hzblj](https://github.com/hzblj)! - The README shows the example app on iOS and Android.
+
 ## 0.1.1
 
 ### Patch Changes
