@@ -21,6 +21,8 @@ type RadioCardProps = {
   active: boolean
   onPlay: (clip: RadioClip) => void
   onSeek: (clip: RadioClip, time: number) => void
+  /** Off, the card is its waveform alone: nothing transcribed, no word marks, no words. */
+  words: boolean
 }
 
 /** The time under the playhead while the card plays, its length otherwise. */
@@ -42,11 +44,14 @@ const ElapsedText = ({seconds}: {seconds: number}) => (
  * colour as it plays, a tick on the track where every word starts (transcribed on the device by expo-speech), and the
  * words themselves, lit as they are said. Drag the waveform to scrub, or tap it to jump.
  */
-export const RadioCard = memo(({active, clip, onPlay, onSeek, player, transcriber}: RadioCardProps) => {
+export const RadioCard = memo(({active, clip, onPlay, onSeek, player, transcriber, words}: RadioCardProps) => {
   const theme = useAppTheme()
   // The words are a bonus here: a message the device cannot transcribe (an iOS simulator has no speech models) is its
   // waveform alone.
-  const {progress, progressPhase, state, transcript} = useTranscribe(transcriber, clip.url, {cacheKey: clip.url})
+  const {progress, progressPhase, state, transcript} = useTranscribe(transcriber, clip.url, {
+    cacheKey: clip.url,
+    enabled: words,
+  })
   const playback = useWaveformPlayback(active ? player : null)
   const {wordIndex} = useTranscriptPlayback(transcript, active ? player : null)
   const driver = clip.driver
@@ -122,27 +127,29 @@ export const RadioCard = memo(({active, clip, onPlay, onSeek, player, transcribe
         )}
       </Box>
 
-      <Reveal
-        pending={
-          <Caption color="content.tertiary">
-            {progressPhase === 'installing'
-              ? `Installing the English model ${Math.round(progress * 100)} %`
-              : progressPhase === 'downloading'
-                ? `Downloading ${Math.round(progress * 100)} %`
-                : 'Transcribing'}
-          </Caption>
-        }
-        ready={Boolean(transcript.text) || state === 'failed' || state === 'completed' || state === 'cancelled'}
-      >
-        {transcript.text ? (
-          <Karaoke
-            activeColor="content.accent"
-            following={active || scrub !== null}
-            transcript={transcript}
-            wordIndex={litWord}
-          />
-        ) : null}
-      </Reveal>
+      {words ? (
+        <Reveal
+          pending={
+            <Caption color="content.tertiary">
+              {progressPhase === 'installing'
+                ? `Installing the English model ${Math.round(progress * 100)} %`
+                : progressPhase === 'downloading'
+                  ? `Downloading ${Math.round(progress * 100)} %`
+                  : 'Transcribing'}
+            </Caption>
+          }
+          ready={Boolean(transcript.text) || state === 'failed' || state === 'completed' || state === 'cancelled'}
+        >
+          {transcript.text ? (
+            <Karaoke
+              activeColor="content.accent"
+              following={active || scrub !== null}
+              transcript={transcript}
+              wordIndex={litWord}
+            />
+          ) : null}
+        </Reveal>
+      ) : null}
     </Box>
   )
 })

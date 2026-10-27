@@ -35,4 +35,6 @@ Native in Expo's scene delegate instead.
 
 **Captures start playback by link.** The iOS 27 simulator takes no scripted taps (`idb` cannot reach its HID), so
 `waveform-example:///?play=1` plays the selected session's second message, with the app in front (a link from outside asks
-first). Status bar at 9:41 (`xcrun simctl status_bar … override`, Android's demo mode), Release builds.
+first). Status bar at 9:41 (`xcrun simctl status_bar … override`, Android's demo mode), Release builds. The README's
+shots leave the words out, `?words=0` (the `captureWords` launch argument on iOS): an iOS simulator transcribes
+nothing, so only the waveforms alone look the same on both platforms, and the words are expo-speech's to show.

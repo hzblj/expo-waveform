@@ -80,9 +80,15 @@ export const RadioScreen = () => {
     [player]
   )
 
+  const params = useLocalSearchParams<{play?: string; words?: string}>()
+
+  // `?words=0` (or the `captureWords` launch argument) leaves the words out and the waveforms alone: the README's
+  // captures, the same on both platforms, as an iOS simulator has no speech models to transcribe with anyway.
+  const words = (params.words ?? capture.words) !== '0'
+
   // `?play=1` (or the `capturePlay` launch argument) plays the session's second message: how the captures start
   // playback.
-  const play = useLocalSearchParams<{play?: string}>().play ?? capture.play
+  const play = params.play ?? capture.play
   useEffect(() => {
     const clip = play === undefined ? undefined : clips[Number(play)]
     if (clip) {
@@ -135,6 +141,7 @@ export const RadioScreen = () => {
           onSeek={onSeek}
           player={player}
           transcriber={transcriber}
+          words={words}
         />
       )}
       testID="radio"

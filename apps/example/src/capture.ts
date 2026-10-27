@@ -5,10 +5,11 @@ import {Platform, Settings} from 'react-native'
  * (`xcrun simctl launch <device> <bundle id> -capturePlay 1 -captureRoute /styles`). The iOS 27 simulator takes no
  * scripted taps, and a link from outside asks before it opens. Android takes the `?play=` link and taps.
  */
-export const capture: {play?: string; route?: string} =
+export const capture: {play?: string; route?: string; words?: string} =
   Platform.OS === 'ios'
     ? {
         play: Settings.get('capturePlay') as string | undefined,
         route: Settings.get('captureRoute') as string | undefined,
+        words: Settings.get('captureWords') as string | undefined,
       }
     : {}
