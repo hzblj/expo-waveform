@@ -1,5 +1,11 @@
 # @hzblj/expo-waveform
 
+## 0.2.1
+
+### Patch Changes
+
+- [`b3076ca`](https://github.com/hzblj/expo-waveform/commit/b3076cae7d071fd4e7de7d9799fbaf8cfccfccdd) Thanks [@hzblj](https://github.com/hzblj)! - `LiveWaveformView`'s `meter` is typed as a shared object instance, so a `Transcription` from `@hzblj/expo-speech` type-checks; it was typed as the class.
+
 ## 0.2.0
 
 ### Minor Changes
