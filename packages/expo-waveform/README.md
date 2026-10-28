@@ -106,16 +106,20 @@ const [transcription, setTranscription] = useState<Transcription | null>(null)
 <LiveWaveformView meter={transcription} minBarHeight={3} style={{height: 24, width: 72}} />
 ```
 
-`meter` is a shared object that publishes levels natively, and the view draws each one as it comes: no re-render, no event through JavaScript. [`@hzblj/expo-speech`](https://github.com/hzblj/expo-speech)'s `Transcription` does, for its microphone. Silence is a row of the shortest bars; with `minBarHeight` equal to `barWidth` it reads as dots.
+`meter` is a shared object that publishes levels natively, and the view draws each one as it comes: no re-render, no event through JavaScript. [`@hzblj/expo-speech`](https://github.com/hzblj/expo-speech)'s `Transcription` does, for its microphone. Nothing is drawn before the first level, so the meter grows in from the edge its bars come in at. Silence is a row of the shortest bars; with `minBarHeight` equal to `barWidth` it reads as dots.
+
+Levels never arrive evenly (a microphone hands them over in buffers), so the bars don't jump when one arrives: the display's frames move them at the pace levels usually come, `lag` levels behind the newest, speeding up a little when they fall behind and slowing down when they catch up. `lag={0}` shows each level the moment it arrives and moves as unevenly as they come; a source with a fixed rate can say it with `pace` (seconds per level).
+
+`flow` is the way the bars move: `left` (the default) brings new ones in at the right edge, `right` at the left, `up` at the bottom and `down` at the top, the bars lying across the view. It is drawn that way natively, not turned with a style transform, which would leave React Native's layout box and touch area unturned.
 
 A source of your own publishes a root mean square from 0 to 1 per level, from any thread:
 
 - **iOS:** posts the notification `expo.audioLevel` with itself as the object and the level as a `Double` in `userInfo["level"]`.
 - **Android:** has `addAudioLevelListener(java.util.function.DoubleConsumer): AutoCloseable` (keep it from R8 with `@Keep`); the view finds it by name and closes the handle when it lets go.
 
-Native code can use the meter itself: `LiveWaveformView` is a plain `UIView` on iOS and a plain `View` on Android, with `meter`, `append(level)`, `reset()`, `style`, `scale`, `noiseFloor` and `color` (Android's `style` is in pixels).
+Native code can use the meter itself: `LiveWaveformView` is a plain `UIView` on iOS and a plain `View` on Android, with `meter`, `append(level)` and `reset()` (Android's `style` is in pixels).
 
-`LiveWaveformView` takes `meter`, `variant`, `barWidth`, `barGap`, `barRadius`, `minBarHeight`, `lineWidth`, `alignment`, `scale`, `noiseFloor` and `color`, as `WaveformView` does.
+`LiveWaveformView` takes `meter`, `flow`, `lag` and `pace`, and `variant`, `barWidth`, `barGap`, `barRadius`, `minBarHeight`, `lineWidth`, `alignment`, `scale`, `noiseFloor` and `color` as `WaveformView` does. Native code sets the same on the view (`flow`, `lag`, `pace`, `style`, `scale`, `noiseFloor`, `color`).
 
 ## Without a view
 

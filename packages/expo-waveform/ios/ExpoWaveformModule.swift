@@ -172,6 +172,15 @@ public final class ExpoWaveformModule: Module {
       Prop("color") { (view: LiveWaveformComponent, color: UIColor?) in
         view.waveform.color = color
       }
+      Prop("flow") { (view: LiveWaveformComponent, flow: String?) in
+        view.waveform.flow = flow.flatMap(LiveWaveformFlow.init(rawValue:)) ?? .left
+      }
+      Prop("lag") { (view: LiveWaveformComponent, lag: Double?) in
+        view.waveform.lag = max(0, lag ?? 1)
+      }
+      Prop("pace") { (view: LiveWaveformComponent, pace: Double?) in
+        view.waveform.pace = pace.flatMap { $0 > 0 ? $0 : nil }
+      }
     }
   }
 }

@@ -76,4 +76,30 @@ final class GeometryTests: XCTestCase {
     XCTAssertEqual(dots.minX, 0)
     XCTAssertEqual(dots.maxX, 100)
   }
+
+  func testEveryFlowBringsTheNewestBarInAtItsOwnEdge() {
+    let size = CGSize(width: 100, height: 20)
+    // The newest bar sits at the right edge of the canvas, flowing left.
+    let newest = CGPoint(x: 99, y: 10)
+
+    func place(_ flow: LiveWaveformFlow, _ size: CGSize, _ canvasPoint: CGPoint) -> CGPoint {
+      canvasPoint.applying(WaveformGeometry.flowTransform(flow, size: size))
+    }
+
+    XCTAssertEqual(place(.left, size, newest), CGPoint(x: 99, y: 10))
+    XCTAssertEqual(place(.right, size, newest), CGPoint(x: 1, y: 10))
+
+    let tall = CGSize(width: 20, height: 100)
+    XCTAssertEqual(WaveformGeometry.canvasSize(.up, size: tall), CGSize(width: 100, height: 20))
+    XCTAssertEqual(place(.up, tall, newest), CGPoint(x: 10, y: 99))
+    XCTAssertEqual(place(.down, tall, newest), CGPoint(x: 10, y: 1))
+  }
+
+  func testABarShortOfItsPlaceSitsTowardTheEdgeItComesIn() {
+    XCTAssertEqual(WaveformGeometry.flowOffset(.left, shift: 4), CGPoint(x: 4, y: 0))
+    XCTAssertEqual(WaveformGeometry.flowOffset(.right, shift: 4), CGPoint(x: -4, y: 0))
+    XCTAssertEqual(WaveformGeometry.flowOffset(.up, shift: 4), CGPoint(x: 0, y: 4))
+    XCTAssertEqual(WaveformGeometry.flowOffset(.down, shift: 4), CGPoint(x: 0, y: -4))
+  }
 }
+

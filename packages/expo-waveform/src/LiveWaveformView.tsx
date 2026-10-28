@@ -7,6 +7,9 @@ import type {LiveWaveformViewProps} from './types'
 
 type NativeLiveWaveformViewProps = Omit<ViewProps, 'children'> & {
   meter: number | null
+  flow?: string
+  lag?: number
+  pace?: number
   variant?: string
   barWidth?: number
   barGap?: number

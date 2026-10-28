@@ -176,3 +176,46 @@ object WaveformGeometry {
       .toFloatArray()
   }
 }
+
+/** Which way a live meter's bars move: `LiveWaveformFlow` in `src/types.ts`. New bars come in at the opposite edge. */
+enum class LiveWaveformFlow(val value: String) {
+  LEFT("left"),
+  RIGHT("right"),
+  UP("up"),
+  DOWN("down");
+
+  val isVertical: Boolean
+    get() = this == UP || this == DOWN
+
+  companion object {
+    fun of(value: String?) = entries.firstOrNull { it.value == value } ?: LEFT
+  }
+}
+
+/**
+ * A live meter is laid out flowing left in a canvas as long as the flow; these turn it to its flow in the view. The same
+ * as `flowTransform`, `canvasSize` and `flowOffset` in `ios/Core/WaveformGeometry.swift`.
+ */
+object LiveFlowGeometry {
+  /** The canvas's width and height: the view's, turned for a vertical flow. */
+  fun canvasSize(flow: LiveWaveformFlow, width: Float, height: Float): Pair<Float, Float> =
+    if (flow.isVertical) height to width else width to height
+
+  /** `android.graphics.Matrix` values, in `setValues` order, from the canvas to the view. */
+  fun matrix(flow: LiveWaveformFlow, width: Float, height: Float): FloatArray =
+    when (flow) {
+      LiveWaveformFlow.LEFT -> floatArrayOf(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f)
+      LiveWaveformFlow.RIGHT -> floatArrayOf(-1f, 0f, width, 0f, 1f, 0f, 0f, 0f, 1f)
+      LiveWaveformFlow.UP -> floatArrayOf(0f, 1f, 0f, 1f, 0f, 0f, 0f, 0f, 1f)
+      LiveWaveformFlow.DOWN -> floatArrayOf(0f, 1f, 0f, -1f, 0f, height, 0f, 0f, 1f)
+    }
+
+  /** Where a bar `shift` pixels short of its place is drawn: back toward the edge it comes in at. */
+  fun offset(flow: LiveWaveformFlow, shift: Float): Pair<Float, Float> =
+    when (flow) {
+      LiveWaveformFlow.LEFT -> shift to 0f
+      LiveWaveformFlow.RIGHT -> -shift to 0f
+      LiveWaveformFlow.UP -> 0f to shift
+      LiveWaveformFlow.DOWN -> 0f to -shift
+    }
+}

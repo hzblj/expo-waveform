@@ -98,6 +98,9 @@ class ExpoWaveformModule : Module() {
       Prop("scale") { view: LiveWaveformComponent, scale: String? -> view.waveform.scale = WaveformScale.of(scale) }
       Prop("noiseFloor") { view: LiveWaveformComponent, floor: Float? -> view.waveform.noiseFloor = minOf(-1f, floor ?: -50f) }
       Prop("color") { view: LiveWaveformComponent, color: Any? -> view.color = color }
+      Prop("flow") { view: LiveWaveformComponent, flow: String? -> view.waveform.flow = LiveWaveformFlow.of(flow) }
+      Prop("lag") { view: LiveWaveformComponent, lag: Double? -> view.waveform.lag = maxOf(0.0, lag ?: 1.0) }
+      Prop("pace") { view: LiveWaveformComponent, pace: Double? -> view.waveform.pace = pace?.takeIf { it > 0 } }
 
       OnViewDidUpdateProps { view: LiveWaveformComponent -> view.didUpdateProps() }
       OnViewDestroys { view: LiveWaveformComponent -> view.waveform.meter = null }

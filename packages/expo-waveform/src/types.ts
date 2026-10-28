@@ -193,9 +193,28 @@ export type BarOptions = {
  * A live meter that follows its source natively, with no JavaScript in between: expo-speech's `Transcription`, or any
  * shared object that publishes levels the same way (see the README).
  */
+/**
+ * Which way a live meter's bars move. New bars come in at the opposite edge: `left` brings them in at the right edge,
+ * `up` at the bottom. In `up` and `down` the bars lie across the view, and `bottom` alignment grows them from its right
+ * edge.
+ */
+export type LiveWaveformFlow = 'left' | 'right' | 'up' | 'down'
+
 export type LiveWaveformViewProps = Omit<ViewProps, 'children'> & {
-  /** Followed while set; another one, or `null`, starts from silence. */
+  /** Followed while set; another one, or `null`, starts from nothing. */
   meter?: InstanceType<SharedObject> | null
+  /** @default 'left' */
+  flow?: LiveWaveformFlow
+  /**
+   * How many levels the meter runs behind the newest while they come, so levels that arrive unevenly still flow at an
+   * even speed. `0` shows each level the moment it arrives, and moves as unevenly as they come.
+   * @default 1
+   */
+  lag?: number
+  /**
+   * Seconds between two levels, for a source with a fixed rate. Measured from the levels as they come when unset.
+   */
+  pace?: number
   /** @default 'bars' */
   variant?: WaveformVariant
   /** In points. @default 3 */

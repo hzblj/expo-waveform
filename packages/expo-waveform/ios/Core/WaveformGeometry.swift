@@ -194,3 +194,47 @@ public enum WaveformGeometry {
     return path
   }
 }
+
+/// Which way a live meter's bars move: `LiveWaveformFlow` in `src/types.ts`. New bars come in at the opposite edge.
+public enum LiveWaveformFlow: String, Sendable {
+  case left
+  case right
+  case up
+  case down
+
+  public var isVertical: Bool {
+    self == .up || self == .down
+  }
+}
+
+extension WaveformGeometry {
+  /// A live meter is laid out flowing left in a canvas as long as the flow (`canvasSize`); this turns it to `flow` in
+  /// a view of `size`.
+  public static func flowTransform(_ flow: LiveWaveformFlow, size: CGSize) -> CGAffineTransform {
+    switch flow {
+    case .left:
+      return .identity
+    case .right:
+      return CGAffineTransform(a: -1, b: 0, c: 0, d: 1, tx: size.width, ty: 0)
+    case .up:
+      return CGAffineTransform(a: 0, b: 1, c: 1, d: 0, tx: 0, ty: 0)
+    case .down:
+      return CGAffineTransform(a: 0, b: -1, c: 1, d: 0, tx: 0, ty: size.height)
+    }
+  }
+
+  /// The canvas a live meter is laid out in: the view's size, turned for a vertical flow.
+  public static func canvasSize(_ flow: LiveWaveformFlow, size: CGSize) -> CGSize {
+    flow.isVertical ? CGSize(width: size.height, height: size.width) : size
+  }
+
+  /// Where a bar `shift` points short of its place is drawn, in the view: back toward the edge it comes in at.
+  public static func flowOffset(_ flow: LiveWaveformFlow, shift: CGFloat) -> CGPoint {
+    switch flow {
+    case .left: return CGPoint(x: shift, y: 0)
+    case .right: return CGPoint(x: -shift, y: 0)
+    case .up: return CGPoint(x: 0, y: shift)
+    case .down: return CGPoint(x: 0, y: -shift)
+    }
+  }
+}
