@@ -59,6 +59,8 @@ class LiveWaveformView(context: Context) : View(context) {
   private var levels = FloatArray(0)
   private var subscription: AutoCloseable? = null
   private var lastAppend = now()
+  /** The usual time between two levels: each scroll takes a little longer, so the bars move on without a stop. */
+  private var pace: Double? = null
   private var scrollFrom = 0f
   private var scrollStart = 0.0
   private var scrollDuration = 0.0
@@ -74,12 +76,15 @@ class LiveWaveformView(context: Context) : View(context) {
     levels = if (next.size > kept * 2) next.copyOfRange(next.size - kept, next.size) else next
 
     val now = now()
-    val interval = min(0.5, max(0.03, now - lastAppend))
+    val gap = now - lastAppend
     lastAppend = now
+    if (gap < 0.5) {
+      pace = pace?.let { it * 0.8 + max(0.03, gap) * 0.2 } ?: max(0.03, gap)
+    }
     if (motionEnabled()) {
       scrollFrom = scrollOffset(now) + style.step
       scrollStart = now
-      scrollDuration = interval
+      scrollDuration = (pace ?: 0.1) * 1.25
     }
     rebuild()
   }
@@ -87,6 +92,7 @@ class LiveWaveformView(context: Context) : View(context) {
   /** Back to silence. */
   fun reset() {
     levels = FloatArray(0)
+    pace = null
     scrollFrom = 0f
     rebuild()
   }

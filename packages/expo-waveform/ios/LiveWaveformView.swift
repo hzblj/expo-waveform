@@ -37,6 +37,8 @@ public final class LiveWaveformView: UIView {
   private var levels: [Float] = []
   private var observer: NSObjectProtocol?
   private var lastAppend = CACurrentMediaTime()
+  /// The usual time between two levels: each scroll takes a little longer, so the bars move on without a stop.
+  private var pace: Double?
   private var drawnSize = CGSize.zero
   private var appliedStyle: UIUserInterfaceStyle?
 
@@ -66,15 +68,19 @@ public final class LiveWaveformView: UIView {
     }
 
     let now = CACurrentMediaTime()
-    let interval = min(0.5, max(0.03, now - lastAppend))
+    let gap = now - lastAppend
     lastAppend = now
+    if gap < 0.5 {
+      pace = pace.map { $0 * 0.8 + max(0.03, gap) * 0.2 } ?? max(0.03, gap)
+    }
     redraw()
-    scroll(over: interval)
+    scroll(over: (pace ?? 0.1) * 1.25)
   }
 
   /// Back to silence.
   public func reset() {
     levels = []
+    pace = nil
     barsLayer.removeAnimation(forKey: "scroll")
     redraw()
   }

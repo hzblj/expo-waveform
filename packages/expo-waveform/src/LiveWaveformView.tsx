@@ -1,4 +1,4 @@
-import {requireNativeView, type SharedObject} from 'expo'
+import {requireNativeView} from 'expo'
 import type {ComponentType} from 'react'
 import {type ColorValue, type ProcessedColorValue, processColor, View, type ViewProps} from 'react-native'
 
@@ -6,7 +6,7 @@ import {ExpoWaveform} from './ExpoWaveformModule'
 import type {LiveWaveformViewProps} from './types'
 
 type NativeLiveWaveformViewProps = Omit<ViewProps, 'children'> & {
-  meter: InstanceType<SharedObject> | null
+  meter: number | null
   variant?: string
   barWidth?: number
   barGap?: number
@@ -25,6 +25,13 @@ const NativeLiveWaveformView: ComponentType<NativeLiveWaveformViewProps> | null 
 
 const processed = (color: ColorValue | undefined) => (color === undefined ? undefined : processColor(color))
 
+/** A view prop takes a shared object by its id: Fabric cannot carry the object itself, which would arrive as nothing. */
+const sharedObjectId = (object: object | null | undefined): number | null => {
+  const id: unknown = object ? Reflect.get(object, '__expo_shared_object_id__') : null
+
+  return typeof id === 'number' ? id : null
+}
+
 /**
  * A live meter that follows `meter` natively: one bar per level, the newest at the right edge, the older ones
  * scrolling off the left. No re-render and no JavaScript per level.
@@ -34,5 +41,5 @@ export const LiveWaveformView = ({meter, color, ...props}: LiveWaveformViewProps
     return <View {...props} />
   }
 
-  return <NativeLiveWaveformView {...props} color={processed(color)} meter={meter ?? null} />
+  return <NativeLiveWaveformView {...props} color={processed(color)} meter={sharedObjectId(meter)} />
 }
