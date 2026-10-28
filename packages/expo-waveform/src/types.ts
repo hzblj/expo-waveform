@@ -195,7 +195,7 @@ export type BarOptions = {
  */
 export type LiveWaveformViewProps = Omit<ViewProps, 'children'> & {
   /** Followed while set; another one, or `null`, starts from silence. */
-  meter?: SharedObject | null
+  meter?: InstanceType<SharedObject> | null
   /** @default 'bars' */
   variant?: WaveformVariant
   /** In points. @default 3 */

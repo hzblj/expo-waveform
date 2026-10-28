@@ -6,7 +6,7 @@ import {ExpoWaveform} from './ExpoWaveformModule'
 import type {LiveWaveformViewProps} from './types'
 
 type NativeLiveWaveformViewProps = Omit<ViewProps, 'children'> & {
-  meter: SharedObject | null
+  meter: InstanceType<SharedObject> | null
   variant?: string
   barWidth?: number
   barGap?: number
