@@ -1,4 +1,5 @@
 export {barCount, levelOf, toBars} from './bars'
+export {LiveWaveformView} from './LiveWaveformView'
 export {type PlaybackSource, useWaveformPlayback} from './playback'
 export type * from './types'
 export {Waveform} from './Waveform'

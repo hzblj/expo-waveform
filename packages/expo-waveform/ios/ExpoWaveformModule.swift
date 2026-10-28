@@ -137,5 +137,41 @@ public final class ExpoWaveformModule: Module {
         view.didUpdateProps()
       }
     }
+
+    View(LiveWaveformComponent.self) {
+      Prop("meter") { (view: LiveWaveformComponent, meter: SharedObject?) in
+        view.waveform.meter = meter
+      }
+      Prop("variant") { (view: LiveWaveformComponent, variant: String?) in
+        view.waveform.style.variant = variant.flatMap(WaveformVariant.init(rawValue:)) ?? .bars
+      }
+      Prop("barWidth") { (view: LiveWaveformComponent, width: Double?) in
+        view.waveform.style.barWidth = CGFloat(width ?? 3)
+      }
+      Prop("barGap") { (view: LiveWaveformComponent, gap: Double?) in
+        view.waveform.style.barGap = CGFloat(gap ?? 2)
+      }
+      Prop("barRadius") { (view: LiveWaveformComponent, radius: Double?) in
+        view.waveform.style.barRadius = radius.map { CGFloat($0) }
+      }
+      Prop("minBarHeight") { (view: LiveWaveformComponent, height: Double?) in
+        view.waveform.style.minBarHeight = CGFloat(height ?? 2)
+      }
+      Prop("lineWidth") { (view: LiveWaveformComponent, width: Double?) in
+        view.waveform.style.lineWidth = CGFloat(width ?? 2)
+      }
+      Prop("alignment") { (view: LiveWaveformComponent, alignment: String?) in
+        view.waveform.style.alignment = alignment.flatMap(WaveformAlignment.init(rawValue:)) ?? .center
+      }
+      Prop("scale") { (view: LiveWaveformComponent, scale: String?) in
+        view.waveform.scale = scale.flatMap(WaveformScale.init(rawValue:)) ?? .logarithmic
+      }
+      Prop("noiseFloor") { (view: LiveWaveformComponent, floor: Double?) in
+        view.waveform.noiseFloor = Float(min(-1, floor ?? -50))
+      }
+      Prop("color") { (view: LiveWaveformComponent, color: UIColor?) in
+        view.waveform.color = color
+      }
+    }
   }
 }

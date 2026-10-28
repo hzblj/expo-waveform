@@ -4,6 +4,7 @@ import android.content.Context
 import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.sharedobjects.SharedObject
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
 import kotlinx.coroutines.Dispatchers
@@ -83,6 +84,23 @@ class ExpoWaveformModule : Module() {
 
       OnViewDidUpdateProps { view: WaveformView -> view.didUpdateProps() }
       OnViewDestroys { view: WaveformView -> view.destroy() }
+    }
+
+    View(LiveWaveformComponent::class) {
+      Prop("meter") { view: LiveWaveformComponent, meter: SharedObject? -> view.waveform.meter = meter }
+      Prop("variant") { view: LiveWaveformComponent, variant: String? -> view.variant = WaveformVariant.of(variant) }
+      Prop("barWidth") { view: LiveWaveformComponent, width: Float? -> view.barWidth = width ?: 3f }
+      Prop("barGap") { view: LiveWaveformComponent, gap: Float? -> view.barGap = gap ?: 2f }
+      Prop("barRadius") { view: LiveWaveformComponent, radius: Float? -> view.barRadius = radius }
+      Prop("minBarHeight") { view: LiveWaveformComponent, height: Float? -> view.minBarHeight = height ?: 2f }
+      Prop("lineWidth") { view: LiveWaveformComponent, width: Float? -> view.lineWidth = width ?: 2f }
+      Prop("alignment") { view: LiveWaveformComponent, alignment: String? -> view.alignment = WaveformAlignment.of(alignment) }
+      Prop("scale") { view: LiveWaveformComponent, scale: String? -> view.waveform.scale = WaveformScale.of(scale) }
+      Prop("noiseFloor") { view: LiveWaveformComponent, floor: Float? -> view.waveform.noiseFloor = minOf(-1f, floor ?: -50f) }
+      Prop("color") { view: LiveWaveformComponent, color: Any? -> view.color = color }
+
+      OnViewDidUpdateProps { view: LiveWaveformComponent -> view.didUpdateProps() }
+      OnViewDestroys { view: LiveWaveformComponent -> view.waveform.meter = null }
     }
   }
 }

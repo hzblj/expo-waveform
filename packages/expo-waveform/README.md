@@ -16,7 +16,7 @@ Audio waveforms for Expo, drawn natively on iOS and Android. A file is analysed 
 - **Follows a player on its own:** `useWaveformPlayback` hands the view where expo-audio's or expo-video's player is, and the view moves the playhead between reports. The component re-renders on play, pause, seek and rate, not ten times a second.
 - **Seeks:** the playhead jumps under the finger as it lands and follows it; lift to seek. A vertical drag is left to the scroll view around. Haptics as a drag starts and ends and at every marker it crosses.
 - **Markers:** a transcript's words, chapters, loop points: a drag ticks at each, and they can show as dots below the bars or lines between them.
-- **Live:** levels of your own (a recorder's meter) scroll in from the right, smoothly, one bar per level.
+- **Live:** levels of your own (a recorder's meter) scroll in from the right, smoothly, one bar per level. `LiveWaveformView` follows a speech transcription's microphone on its own, natively, with no JavaScript per level.
 - **Accessible:** a seekable waveform is an adjustable control for VoiceOver and a seek bar for TalkBack.
 
 ## Install
@@ -93,6 +93,29 @@ useEffect(() => {
 With `live`, every level is a bar, the newest at the right edge. A meter that appends (or keeps a window of the last few) scrolls smoothly by what it appended, over the time since its last update. Keep more levels than fit: the older ones run off the left edge. Once the recording is a file, draw it with `source`.
 
 `samples` without `live` draws levels of your own across the width, as they are: `scale`, `noiseFloor` and `normalize` apply to a source only.
+
+## Follow a live source natively
+
+```tsx
+import {LiveWaveformView} from '@hzblj/expo-waveform'
+import {useSpeechTranscriber} from '@hzblj/expo-speech'
+
+const transcriber = useSpeechTranscriber({mode: 'dictation'})
+const [transcription, setTranscription] = useState<Transcription | null>(null)
+
+<LiveWaveformView meter={transcription} minBarHeight={3} style={{height: 24, width: 72}} />
+```
+
+`meter` is a shared object that publishes levels natively, and the view draws each one as it comes: no re-render, no event through JavaScript. [`@hzblj/expo-speech`](https://github.com/hzblj/expo-speech)'s `Transcription` does, for its microphone. Silence is a row of the shortest bars; with `minBarHeight` equal to `barWidth` it reads as dots.
+
+A source of your own publishes a root mean square from 0 to 1 per level, from any thread:
+
+- **iOS:** posts the notification `expo.audioLevel` with itself as the object and the level as a `Double` in `userInfo["level"]`.
+- **Android:** has `addAudioLevelListener(java.util.function.DoubleConsumer): AutoCloseable` (keep it from R8 with `@Keep`); the view finds it by name and closes the handle when it lets go.
+
+Native code can use the meter itself: `LiveWaveformView` is a plain `UIView` on iOS and a plain `View` on Android, with `meter`, `append(level)`, `reset()`, `style`, `scale`, `noiseFloor` and `color` (Android's `style` is in pixels).
+
+`LiveWaveformView` takes `meter`, `variant`, `barWidth`, `barGap`, `barRadius`, `minBarHeight`, `lineWidth`, `alignment`, `scale`, `noiseFloor` and `color`, as `WaveformView` does.
 
 ## Without a view
 

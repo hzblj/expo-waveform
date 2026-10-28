@@ -1,3 +1,4 @@
+import type {SharedObject} from 'expo'
 import type {ColorValue, ViewProps} from 'react-native'
 
 /** An audio file: a `file://` or `content://` URI, an `http(s)://` URL (downloaded once, then kept), or a `require()`d asset. */
@@ -186,4 +187,39 @@ export type BarOptions = {
   noiseFloor?: number
   /** @default true */
   normalize?: boolean
+}
+
+/**
+ * A live meter that follows its source natively, with no JavaScript in between: expo-speech's `Transcription`, or any
+ * shared object that publishes levels the same way (see the README).
+ */
+export type LiveWaveformViewProps = Omit<ViewProps, 'children'> & {
+  /** Followed while set; another one, or `null`, starts from silence. */
+  meter?: SharedObject | null
+  /** @default 'bars' */
+  variant?: WaveformVariant
+  /** In points. @default 3 */
+  barWidth?: number
+  /** @default 2 */
+  barGap?: number
+  /** @default half of `barWidth` */
+  barRadius?: number
+  /**
+   * The shortest a bar gets: silence as a line, or as dots with `minBarHeight` equal to `barWidth`.
+   * @default 2
+   */
+  minBarHeight?: number
+  /** With `line`. @default 2 */
+  lineWidth?: number
+  /** @default 'center' */
+  alignment?: WaveformAlignment
+  /** @default 'logarithmic' */
+  scale?: WaveformScale
+  /**
+   * Decibels drawn as no height, with `logarithmic`.
+   * @default -50
+   */
+  noiseFloor?: number
+  /** @default the text colour at 30% opacity: `tertiaryLabel` on iOS, the theme's primary text colour on Android */
+  color?: ColorValue
 }

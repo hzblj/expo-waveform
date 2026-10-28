@@ -36,6 +36,13 @@ more than half a second from it for a second, so the player catching up doesn't 
 the left edge, so a scroll never uncovers a gap). `Bars.shift` finds how many levels were appended between two updates
 (a growing array or a sliding window), and the bars scroll by that over the time since the previous update.
 
+**`LiveWaveformView` follows a source natively.** A plain `UIView` / `View` (public, so other native code embeds it)
+wrapped for React Native by `LiveWaveformComponent`. It keeps its levels itself, one bar per `append`, and scrolls by one
+step over the time since the previous level, as the `live` mode does. `meter` is any object that publishes levels:
+iOS observes the `expo.audioLevel` notification with it as the object (posted from any thread, observed on the main
+queue); Android finds `addAudioLevelListener(DoubleConsumer): AutoCloseable` by reflection, subscribes while attached and
+posts each level to the main thread. expo-speech's `Transcription` is such a source; neither package depends on the other.
+
 ## iOS (`ios/`)
 
 `Core/` is plain Swift over Foundation, AVFoundation, Accelerate and CoreGraphics, compiled by the pod and by the SwiftPM
