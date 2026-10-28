@@ -1,5 +1,15 @@
 # @hzblj/expo-waveform
 
+## 0.3.0
+
+### Minor Changes
+
+- [`ca908e4`](https://github.com/hzblj/expo-waveform/commit/ca908e409ad7605121512e4d1038b3ee75b3a850) Thanks [@hzblj](https://github.com/hzblj)! - `LiveWaveformView` flows evenly: the display's frames move the bars at the pace levels usually come, `lag` levels behind the newest (1 by default), so levels that arrive in uneven bursts no longer make it stop and jump. It grows in from the edge its bars come in at instead of starting with a full row of silence. `flow` (`left`, `right`, `up`, `down`) picks the way the bars move, drawn natively in every direction, and `pace` gives a source's fixed rate.
+
+### Patch Changes
+
+- [`1468d4b`](https://github.com/hzblj/expo-waveform/commit/1468d4b17af97d415f0063ad642547e87e1f5e5a) Thanks [@hzblj](https://github.com/hzblj)! - `LiveWaveformView` follows its `meter`: the shared object goes to the native view by its id, since Fabric props cannot carry the object itself and the meter never started. Its bars scroll at the levels' usual pace, a little slower than they come, so they flow on without stopping when a level comes late or two come at once.
+
 ## 0.2.1
 
 ### Patch Changes
