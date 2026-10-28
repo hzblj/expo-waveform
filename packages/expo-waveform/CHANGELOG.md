@@ -1,5 +1,11 @@
 # @hzblj/expo-waveform
 
+## 0.2.0
+
+### Minor Changes
+
+- [`433f22c`](https://github.com/hzblj/expo-waveform/commit/433f22cb836eefd5dcbc238222e403766c743c10) Thanks [@hzblj](https://github.com/hzblj)! - `LiveWaveformView` draws a live meter that follows its source natively: `meter` takes a shared object that publishes levels (`@hzblj/expo-speech`'s `Transcription` for its microphone), with no re-render and no JavaScript per level. Native code can embed it too: a plain `UIView` on iOS and a plain `View` on Android.
+
 ## 0.1.2
 
 ### Patch Changes
