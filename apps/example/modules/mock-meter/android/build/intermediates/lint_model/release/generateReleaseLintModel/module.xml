@@ -1,0 +1,18 @@
+<lint-module
+    format="1"
+    dir="/Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android"
+    name=":mock-meter"
+    type="LIBRARY"
+    maven="expo.modules.mockmeter:mock-meter:0.0.0"
+    agpVersion="8.12.0"
+    buildFolder="build"
+    bootClassPath="/Users/jan/Library/Android/sdk/platforms/android-36/android.jar:/Users/jan/Library/Android/sdk/build-tools/35.0.0/core-lambda-stubs.jar"
+    javaSourceLevel="17"
+    compileTarget="android-36"
+    neverShrinking="true">
+  <lintOptions
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="release"/>
+</lint-module>

@@ -1,4 +1,4 @@
-import {useWaveformPlayback, WaveformView} from '@hzblj/expo-waveform'
+import {LiveWaveformView, useWaveformPlayback, WaveformView} from '@hzblj/expo-waveform'
 import {Box, Button, Island, RnScrollView, RnText, useAppTheme, VStack} from '@hzblj/kara-ui'
 import {
   type AudioSample,
@@ -10,8 +10,10 @@ import {
   useAudioRecorderState,
   useAudioSampleListener,
 } from 'expo-audio'
-import {useCallback, useEffect, useRef, useState} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 
+import {MockMeter} from '../../modules/mock-meter'
+import {capture} from '../capture'
 import {FIRST_CLIP, teamColor} from '../f1/radio'
 import {Caption, formatDuration} from '../ui/format'
 import {Section} from '../ui/page'
@@ -28,6 +30,16 @@ const NOISE_FLOOR = -50
 const levelOf = (decibels: number) => Math.min(1, Math.max(0, (decibels - NOISE_FLOOR) / -NOISE_FLOOR))
 
 const RECORDING = {...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true}
+
+/**
+ * The stand-in microphone's rate: a level every 85 ms (4096-frame buffers at 48 kHz), each up to 15 ms early or late,
+ * as a main thread hands them over.
+ */
+const MOCK_INTERVAL = 0.085
+const MOCK_JITTER = 0.015
+/** A busy main thread: held 60 ms every 600 ms, about what an app does when each new word updates a screen. */
+const HITCH_EVERY = 0.6
+const HITCH_DURATION = 0.06
 
 /** Levels as they come, the newest last. */
 const useMeter = () => {
@@ -133,6 +145,59 @@ const Microphone = () => {
   )
 }
 
+/**
+ * `LiveWaveformView` following a stand-in microphone (`modules/mock-meter`), natively: levels shaped like speech that
+ * come as unevenly as a real one's, on a simulator too. With the main thread held now and then, the bars keep flowing
+ * on iOS, where Core Animation moves them.
+ */
+const Simulated = () => {
+  const theme = useAppTheme()
+  const meter = useMemo(() => new MockMeter.Meter(), [])
+  const [running, setRunning] = useState(capture.mock === '1')
+  const [busy, setBusy] = useState(capture.hitches === '1')
+
+  useEffect(() => {
+    if (running) {
+      meter.start(MOCK_INTERVAL, MOCK_JITTER)
+    }
+    return () => meter.stop()
+  }, [meter, running])
+
+  useEffect(() => {
+    MockMeter.setMainThreadHitches(busy ? HITCH_EVERY : 0, HITCH_DURATION)
+    return () => MockMeter.setMainThreadHitches(0, 0)
+  }, [busy])
+
+  return (
+    <Section
+      caption="A stand-in microphone: a level every 85 ms, give or take 15. A busy main thread is held for 60 ms every 600 ms."
+      title="Simulated"
+    >
+      <Box bg="surface.primary" borderRadius="large" gap="s12" p="s16">
+        <Caption color={running ? 'content.accent' : 'content.secondary'}>
+          {running ? (busy ? 'Listening · busy main thread' : 'Listening') : 'Live'}
+        </Caption>
+        <LiveWaveformView
+          barGap={3}
+          barWidth={3}
+          color={theme.color('content.accent')}
+          growIn
+          meter={meter}
+          minBarHeight={3}
+          style={{height: 64}}
+          testID="simulated"
+        />
+      </Box>
+      <Island>
+        <VStack spacing="s8" wide>
+          <Button label={running ? 'Stop' : 'Listen'} onPress={() => setRunning(value => !value)} />
+          <Button label={busy ? 'Free the main thread' : 'Busy main thread'} onPress={() => setBusy(value => !value)} />
+        </VStack>
+      </Island>
+    </Section>
+  )
+}
+
 /** The root mean square of a sample's first channel, in decibels. */
 const decibelsOf = (sample: AudioSample) => {
   const frames = sample.channels[0]?.frames ?? []
@@ -206,6 +271,7 @@ export const LiveScreen = () => (
     flex={1}
     testID="live"
   >
+    <Simulated />
     <Microphone />
     <RadioMeter />
   </RnScrollView>

@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml:2:13-83
+INJECTED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml:2:13-83
+	package
+		INJECTED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml
+	xmlns:android
+		ADDED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml:2:23-81
+uses-sdk
+INJECTED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml reason: use-sdk injection requested
+INJECTED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml
+INJECTED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml
+	android:targetSdkVersion
+		INJECTED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml
+	android:minSdkVersion
+		INJECTED from /Users/jan/Developer/@janblazej/expo-waveform/apps/example/modules/mock-meter/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest407853448551122356.xml
