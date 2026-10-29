@@ -37,11 +37,18 @@ the left edge, so a scroll never uncovers a gap). `Bars.shift` finds how many le
 (a growing array or a sliding window), and the bars scroll by that over the time since the previous update.
 
 **`LiveWaveformView` follows a source natively.** A plain `UIView` / `View` (public, so other native code embeds it)
-wrapped for React Native by `LiveWaveformComponent`. It keeps its levels itself, one bar per `append`, and moves on a
-display link (`CADisplayLink` / `Choreographer`), not per level: `position` (in levels) chases `lag` levels behind the
-newest at the measured (or given) `pace`, nudged by how far it is behind, so uneven arrivals flow evenly. The path holds
-the bars up to the one coming in and is rebuilt only when `position` passes a whole level; between, the layer (canvas)
-slides by the fraction. Nothing is drawn before the first level. `flow` lays the meter out flowing left in a canvas as
+wrapped for React Native by `LiveWaveformComponent`. It keeps its levels itself, one bar per `append`. Each level sets
+`LiveMotion` (`Core/LiveMotion.swift`, `LiveMotion.kt`): a straight line in time from where the meter is toward the
+newest, at the measured (`LivePace`, over the last two seconds of arrivals, so a burst barely moves it) or given `pace`,
+nudged by how far it is from `lag` levels behind; a meter that stood at the newest longer than a level waits until it is
+`lag` behind again, one that only just got there moves on, slower. iOS hands the line to Core Animation, nothing per
+frame on the main thread: a `transform` animation on the content layer with absolute `beginTime`s, so a commit that
+lands late still follows the same line, and a busy main thread no longer stops the bars. Bars done growing sit in one
+path; the ones still growing (`growIn`) are keyframed at 60 fps into a second shape layer until the last has grown (the
+whole envelope, for `area` and `line`). `WaveformGeometry` draws every bar with the same segments whatever its radius
+(`addBar`), or keyframed paths would not interpolate. Android draws the same line every frame from `Choreographer`. A
+bar grows from the moment the meter is less than its width short of it (`entries`, kept once passed), so it grows while
+it comes in at the edge. Nothing is drawn before the first level. `flow` lays the meter out flowing left in a canvas as
 long as the flow (`canvasSize`) and turns it with `flowTransform` / `LiveFlowGeometry.matrix`, so every variant and
 alignment works in every direction. `meter` is any object that publishes levels:
 iOS observes the `expo.audioLevel` notification with it as the object (posted from any thread, observed on the main

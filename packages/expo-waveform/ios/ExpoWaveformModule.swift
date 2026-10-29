@@ -176,11 +176,32 @@ public final class ExpoWaveformModule: Module {
         view.waveform.flow = flow.flatMap(LiveWaveformFlow.init(rawValue:)) ?? .left
       }
       Prop("lag") { (view: LiveWaveformComponent, lag: Double?) in
-        view.waveform.lag = max(0, lag ?? 1)
+        view.waveform.lag = max(0, lag ?? 2)
       }
       Prop("pace") { (view: LiveWaveformComponent, pace: Double?) in
         view.waveform.pace = pace.flatMap { $0 > 0 ? $0 : nil }
       }
+      Prop("growIn") { (view: LiveWaveformComponent, growIn: [String: Any]?) in
+        view.waveform.growIn = Self.growIn(growIn)
+      }
     }
+  }
+
+  /// `growIn` from JavaScript: `null`, or `duration` in milliseconds and `easing` as a name or four control points,
+  /// either left out for its default.
+  private static func growIn(_ value: [String: Any]?) -> LiveWaveformGrowIn? {
+    guard let value else {
+      return nil
+    }
+    var growIn = LiveWaveformGrowIn()
+    if let duration = value["duration"] as? Double {
+      growIn.duration = max(0, duration) / 1000
+    }
+    if let name = value["easing"] as? String, let easing = WaveformEasing.named(name) {
+      growIn.easing = easing
+    } else if let points = value["easing"] as? [Double], points.count == 4 {
+      growIn.easing = WaveformEasing(points[0], points[1], points[2], points[3])
+    }
+    return growIn
   }
 }

@@ -99,11 +99,29 @@ class ExpoWaveformModule : Module() {
       Prop("noiseFloor") { view: LiveWaveformComponent, floor: Float? -> view.waveform.noiseFloor = minOf(-1f, floor ?: -50f) }
       Prop("color") { view: LiveWaveformComponent, color: Any? -> view.color = color }
       Prop("flow") { view: LiveWaveformComponent, flow: String? -> view.waveform.flow = LiveWaveformFlow.of(flow) }
-      Prop("lag") { view: LiveWaveformComponent, lag: Double? -> view.waveform.lag = maxOf(0.0, lag ?: 1.0) }
+      Prop("lag") { view: LiveWaveformComponent, lag: Double? -> view.waveform.lag = maxOf(0.0, lag ?: 2.0) }
       Prop("pace") { view: LiveWaveformComponent, pace: Double? -> view.waveform.pace = pace?.takeIf { it > 0 } }
+      Prop("growIn") { view: LiveWaveformComponent, growIn: Map<String, Any?>? -> view.waveform.growIn = growInOf(growIn) }
 
       OnViewDidUpdateProps { view: LiveWaveformComponent -> view.didUpdateProps() }
       OnViewDestroys { view: LiveWaveformComponent -> view.waveform.meter = null }
     }
   }
+}
+
+/**
+ * `growIn` from JavaScript: null, or `duration` in milliseconds and `easing` as a name or four control points, either
+ * left out for its default.
+ */
+private fun growInOf(value: Map<String, Any?>?): LiveWaveformGrowIn? {
+  if (value == null) return null
+  val defaults = LiveWaveformGrowIn()
+  val easing = value["easing"]
+  val points = (easing as? List<*>)?.mapNotNull { (it as? Number)?.toDouble() }?.takeIf { it.size == 4 }
+  return LiveWaveformGrowIn(
+    duration = (value["duration"] as? Number)?.let { maxOf(0.0, it.toDouble()) / 1000 } ?: defaults.duration,
+    easing = WaveformEasing.named(easing as? String)
+      ?: points?.let { WaveformEasing(it[0], it[1], it[2], it[3]) }
+      ?: defaults.easing,
+  )
 }

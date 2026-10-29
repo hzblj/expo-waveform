@@ -16,9 +16,9 @@ import com.facebook.react.bridge.ColorPropConverter
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.views.ExpoView
 import java.util.function.DoubleConsumer
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -27,17 +27,16 @@ import kotlin.math.roundToInt
  * `Transcription`), or takes levels from `append`. A plain `View`, so native code can use it as it is. `style` is in
  * pixels.
  *
- * Levels arrive unevenly, so the bars do not move when one arrives: `Choreographer` moves them every frame at the pace
- * levels usually come, `lag` levels behind the newest, and nudges the speed to keep that distance. Nothing is drawn
- * before the first level, so the meter grows in from the edge the bars come in at. The same rules as
- * `ios/LiveWaveformView.swift`.
+ * Levels arrive unevenly, so the bars do not move when one arrives: each level sets the meter on a straight line
+ * toward it at the pace levels usually come, `lag` levels behind (`LiveMotion`), and `Choreographer` draws it there
+ * every frame. With `growIn` a bar grows to its level as it comes in at the edge. Nothing is drawn before the first
+ * level, so the meter grows in from the edge the bars come in at. The same rules as `ios/LiveWaveformView.swift`.
  */
 class LiveWaveformView(context: Context) : View(context) {
   var style = WaveformStyle()
     set(value) {
       if (value != field) {
         field = value
-        builtBase = null
         invalidate()
       }
     }
@@ -46,19 +45,27 @@ class LiveWaveformView(context: Context) : View(context) {
     set(value) {
       if (value != field) {
         field = value
-        builtBase = null
         invalidate()
       }
     }
 
   /**
-   * How many levels the meter runs behind the newest while they come, to even out how they arrive. 0 shows each one at
-   * once, and moves as unevenly as they come.
+   * How many levels the meter runs behind the newest while they come: room for a level that comes late, or a busy
+   * main thread, before the bars would have to stop. 0 shows each one at once, and moves as unevenly as they come.
    */
-  var lag = 1.0
+  var lag = 2.0
 
   /** Seconds between two levels, when the source has a fixed one; measured from the levels as they come when null. */
   var pace: Double? = null
+
+  /** New bars grow from their shortest to their level as they come in at the edge; null draws them whole. */
+  var growIn: LiveWaveformGrowIn? = null
+    set(value) {
+      if (value != field) {
+        field = value
+        invalidate()
+      }
+    }
   var scale = WaveformScale.LOGARITHMIC
   var noiseFloor = -50f
 
@@ -86,16 +93,14 @@ class LiveWaveformView(context: Context) : View(context) {
   /** Heights from 0 to 1; `dropped` older ones were let go, so an index here is `dropped` less than a level's number. */
   private var levels = FloatArray(0)
   private var dropped = 0
-  /** Where the meter is, in levels: the level with this number sits at the right edge. The first one comes in from -1. */
-  private var position = -1.0
-  /** Seconds between two levels, on average. */
-  private var measuredPace = 0.08
-  private var lastAppend: Double? = null
-  private var lastFrame: Double? = null
+  /** When each level's bar started, or will start, to come in at the edge, by the level's number. */
+  private val entries = HashMap<Int, Double>()
+  private var motion = LiveMotion()
+  private var measuredPace = LivePace()
   private var moving = false
-  private var builtBase: Int? = null
-  private var builtWidth = 0
-  private var builtHeight = 0
+  /** The frame `Choreographer` is drawing, so every bar is placed for the same moment. */
+  private var frameTime: Double? = null
+  private var isGrowing = false
   private var subscription: AutoCloseable? = null
   private val frameCallback = Choreographer.FrameCallback { frameTime -> tick(frameTime / 1e9) }
 
@@ -108,34 +113,38 @@ class LiveWaveformView(context: Context) : View(context) {
 
   /** A new level, as a root mean square from 0 to 1. On the main thread. */
   fun append(rms: Float) {
+    val now = now()
+    val isFirst = levels.isEmpty()
     val next = levels + Bars.level(rms, scale, noiseFloor)
     val length = LiveFlowGeometry.canvasSize(flow, width.toFloat(), height.toFloat()).first
-    val kept = WaveformGeometry.count(length, style) + kotlin.math.ceil(lag).toInt() + 4
+    val kept = WaveformGeometry.count(length, style) + ceil(lag).toInt() + 4
     if (next.size > kept * 2) {
       val removed = next.size - kept
       levels = next.copyOfRange(removed, next.size)
       dropped += removed
+      entries.keys.removeAll { it < dropped }
     } else {
       levels = next
     }
+    measuredPace.record(now)
 
-    val now = now()
-    lastAppend?.let { previous ->
-      if (now - previous < 0.5) {
-        measuredPace = measuredPace * 0.9 + min(0.3, max(0.02, now - previous)) * 0.1
-      }
+    if (lag <= 0 || !ValueAnimator.areAnimatorsEnabled()) {
+      motion.jump(newest.toDouble(), now)
+    } else {
+      if (isFirst) motion.jump(newest - 1.0, now)
+      motion.follow(newest, lag, pace ?: measuredPace.value, now)
     }
-    lastAppend = now
     startMoving()
+    invalidate()
   }
 
   /** Back to nothing. */
   fun reset() {
     levels = FloatArray(0)
     dropped = 0
-    position = -1.0
-    lastAppend = null
-    builtBase = null
+    entries.clear()
+    motion = LiveMotion()
+    measuredPace = LivePace()
     stopMoving()
     invalidate()
   }
@@ -152,46 +161,56 @@ class LiveWaveformView(context: Context) : View(context) {
     super.onDetachedFromWindow()
   }
 
-  override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-    super.onSizeChanged(w, h, oldw, oldh)
-    builtBase = null
-  }
-
   override fun onConfigurationChanged(newConfig: Configuration?) {
     super.onConfigurationChanged(newConfig)
     applyColor()
   }
 
-  /** The path holds the bars up to the one coming in, right-anchored; the canvas slides it by the fraction of a level. */
+  /**
+   * The bars from the left edge to the newest, the newest at its place at the edge, and the canvas slid back by how far
+   * the meter is short of it.
+   */
   override fun onDraw(canvas: Canvas) {
     super.onDraw(canvas)
-    val base = floor(position).toInt()
-    val last = min(newest, base + 1)
-    if (levels.isEmpty() || width == 0 || last - dropped < 0) return
+    isGrowing = false
+    if (levels.isEmpty() || width == 0 || height == 0) return
 
-    if (base != builtBase || width != builtWidth || height != builtHeight) {
-      builtBase = base
-      builtWidth = width
-      builtHeight = height
-      val (length, thickness) = LiveFlowGeometry.canvasSize(flow, width.toFloat(), height.toFloat())
-      val count = WaveformGeometry.count(length, style) + 2
-      val end = last - dropped + 1
-      val heights = levels.copyOfRange(max(0, end - count), end)
-      path.reset()
-      WaveformGeometry.path(heights, length, thickness, style, live = true, path = path)
-      turn.setValues(LiveFlowGeometry.matrix(flow, width.toFloat(), height.toFloat()))
-      path.transform(turn)
-      paint.style = if (style.variant == WaveformVariant.LINE) Paint.Style.STROKE else Paint.Style.FILL
-      paint.strokeWidth = style.lineWidth
+    val now = frameTime?.takeIf { now() - it < 0.05 } ?: now()
+    val here = motion.position(now)
+    val (length, thickness) = LiveFlowGeometry.canvasSize(flow, width.toFloat(), height.toFloat())
+    val first = max(dropped, floor(here).toInt() - WaveformGeometry.count(length, style) - 1)
+    val growIn = growIn.takeIf { ValueAnimator.areAnimatorsEnabled() }
+    // A bar starts to show once the meter is less than a bar's width short of it.
+    val entering = (style.barWidth / style.step).toDouble()
+    val heights = FloatArray(newest - first + 1) { index ->
+      val level = first + index
+      val shown = growIn?.let { shown(level, it, entering, now) } ?: 1f
+      if (shown < 1f) isGrowing = true
+      levels[level - dropped] * shown
     }
 
-    val shift = if (last > base) ((1 - (position - base)) * style.step).toFloat() else 0f
-    val (dx, dy) = LiveFlowGeometry.offset(flow, shift)
+    WaveformGeometry.path(heights, length, thickness, style, live = true, path = path)
+    turn.setValues(LiveFlowGeometry.matrix(flow, width.toFloat(), height.toFloat()))
+    path.transform(turn)
+    paint.style = if (style.variant == WaveformVariant.LINE) Paint.Style.STROKE else Paint.Style.FILL
+    paint.strokeWidth = style.lineWidth
+
+    val (dx, dy) = LiveFlowGeometry.offset(flow, ((newest - here) * style.step).toFloat())
     canvas.save()
     canvas.clipRect(0f, 0f, width.toFloat(), height.toFloat())
     canvas.translate(dx, dy)
     canvas.drawPath(path, paint)
     canvas.restore()
+  }
+
+  /** How much of its level `level`'s bar shows at `now`, from when it starts to come in at the edge. */
+  private fun shown(level: Int, growIn: LiveWaveformGrowIn, entering: Double, now: Double): Float {
+    val known = entries[level]?.takeIf { it <= now }
+    val entry = known ?: motion.timeReaching(level - entering)
+    if (known == null) {
+      if (entry == null) entries.remove(level) else entries[level] = entry
+    }
+    return entry?.let { growIn.progress(now - it).toFloat() } ?: 0f
   }
 
   /** The source's levels come on its thread; each one is drawn on the main thread. */
@@ -213,36 +232,22 @@ class LiveWaveformView(context: Context) : View(context) {
   private fun startMoving() {
     if (moving || !isAttachedToWindow) return
     moving = true
-    lastFrame = null
     Choreographer.getInstance().postFrameCallback(frameCallback)
   }
 
   private fun stopMoving() {
     if (!moving) return
     moving = false
+    frameTime = null
     Choreographer.getInstance().removeFrameCallback(frameCallback)
   }
 
-  /** Moves toward one level behind the newest, or onto the newest once levels stop coming, so the last one shows. */
+  /** Draws every frame until the meter stands at the newest with every bar grown. */
   private fun tick(now: Double) {
     if (!moving) return
-    val elapsed = lastFrame?.let { min(0.1, now - it) } ?: 0.0
-    lastFrame = now
-    val last = newest.toDouble()
-    val pace = max(0.005, this.pace ?: measuredPace)
-    val flowing = lastAppend?.let { now() - it < pace * max(3.0, lag + 2) } ?: false
-    val target = if (flowing) last - max(0.0, lag) else last
-
-    position = if (!ValueAnimator.areAnimatorsEnabled()) {
-      last
-    } else {
-      val behind = target - position
-      val speed = (1 + min(0.8, max(-0.8, behind * 0.6))) / pace
-      min(last, position + elapsed * speed)
-    }
+    frameTime = now
     invalidate()
-
-    if (!flowing && position >= last) {
+    if (motion.position(now) >= motion.end && now >= motion.time && !isGrowing) {
       moving = false
       return
     }

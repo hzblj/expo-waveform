@@ -3,13 +3,14 @@ import type {ComponentType} from 'react'
 import {type ColorValue, type ProcessedColorValue, processColor, View, type ViewProps} from 'react-native'
 
 import {ExpoWaveform} from './ExpoWaveformModule'
-import type {LiveWaveformViewProps} from './types'
+import type {LiveWaveformGrowIn, LiveWaveformViewProps} from './types'
 
 type NativeLiveWaveformViewProps = Omit<ViewProps, 'children'> & {
   meter: number | null
   flow?: string
   lag?: number
   pace?: number
+  growIn: LiveWaveformGrowIn | null
   variant?: string
   barWidth?: number
   barGap?: number
@@ -35,14 +36,30 @@ const sharedObjectId = (object: object | null | undefined): number | null => {
   return typeof id === 'number' ? id : null
 }
 
+/** The native view takes an object or nothing: `true` is every default, which the native side fills in. */
+const growInOf = (growIn: LiveWaveformViewProps['growIn']): LiveWaveformGrowIn | null => {
+  if (growIn === true) {
+    return {}
+  }
+
+  return growIn || null
+}
+
 /**
  * A live meter that follows `meter` natively: one bar per level, the newest at the right edge, the older ones
  * scrolling off the left. No re-render and no JavaScript per level.
  */
-export const LiveWaveformView = ({meter, color, ...props}: LiveWaveformViewProps) => {
+export const LiveWaveformView = ({meter, color, growIn, ...props}: LiveWaveformViewProps) => {
   if (NativeLiveWaveformView === null) {
     return <View {...props} />
   }
 
-  return <NativeLiveWaveformView {...props} color={processed(color)} meter={sharedObjectId(meter)} />
+  return (
+    <NativeLiveWaveformView
+      {...props}
+      color={processed(color)}
+      growIn={growInOf(growIn)}
+      meter={sharedObjectId(meter)}
+    />
+  )
 }

@@ -87,11 +87,37 @@ public enum WaveformGeometry {
     for (level, x) in zip(heights, positions(count: heights.count, size: size, style: style, live: live)) {
       let height = barHeight(level, in: size.height, style: style)
       let y = style.alignment == .bottom ? size.height - height : (size.height - height) / 2
-      let radius = min(style.barRadius ?? width / 2, width / 2, height / 2)
-      path.addRoundedRect(
-        in: CGRect(x: x, y: y, width: width, height: height), cornerWidth: max(0, radius), cornerHeight: max(0, radius))
+      addBar(CGRect(x: x, y: y, width: width, height: height), radius: style.barRadius ?? width / 2, to: path)
     }
     return path
+  }
+
+  /// A rounded rect drawn as the same segments whatever its radius, so paths of as many bars always animate element by
+  /// element: `addRoundedRect` draws a plain rect when the radius is 0.
+  private static func addBar(_ rect: CGRect, radius: CGFloat, to path: CGMutablePath) {
+    let radius = max(0, min(radius, rect.width / 2, rect.height / 2))
+    // How far from a corner a quarter circle's control points sit.
+    let inset = radius * 0.4477152502
+    let (minX, minY, maxX, maxY) = (rect.minX, rect.minY, rect.maxX, rect.maxY)
+
+    path.move(to: CGPoint(x: minX + radius, y: minY))
+    path.addLine(to: CGPoint(x: maxX - radius, y: minY))
+    path.addCurve(
+      to: CGPoint(x: maxX, y: minY + radius), control1: CGPoint(x: maxX - inset, y: minY),
+      control2: CGPoint(x: maxX, y: minY + inset))
+    path.addLine(to: CGPoint(x: maxX, y: maxY - radius))
+    path.addCurve(
+      to: CGPoint(x: maxX - radius, y: maxY), control1: CGPoint(x: maxX, y: maxY - inset),
+      control2: CGPoint(x: maxX - inset, y: maxY))
+    path.addLine(to: CGPoint(x: minX + radius, y: maxY))
+    path.addCurve(
+      to: CGPoint(x: minX, y: maxY - radius), control1: CGPoint(x: minX + inset, y: maxY),
+      control2: CGPoint(x: minX, y: maxY - inset))
+    path.addLine(to: CGPoint(x: minX, y: minY + radius))
+    path.addCurve(
+      to: CGPoint(x: minX + radius, y: minY), control1: CGPoint(x: minX, y: minY + inset),
+      control2: CGPoint(x: minX + inset, y: minY))
+    path.closeSubpath()
   }
 
   /// `area` fills the envelope, `line` strokes its edges; both through the middle of every bar's place.

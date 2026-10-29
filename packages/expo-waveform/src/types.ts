@@ -200,6 +200,22 @@ export type BarOptions = {
  */
 export type LiveWaveformFlow = 'left' | 'right' | 'up' | 'down'
 
+/**
+ * A timing curve: a name, or a cubic Bézier's control points `[x1, y1, x2, y2]` as in CSS's `cubic-bezier()`.
+ */
+export type LiveWaveformEasing = 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | [number, number, number, number]
+
+/** How a new bar grows to its level as it comes in at the edge. */
+export type LiveWaveformGrowIn = {
+  /**
+   * Milliseconds from the bar's shortest to its level.
+   * @default 250
+   */
+  duration?: number
+  /** @default 'easeOut' */
+  easing?: LiveWaveformEasing
+}
+
 export type LiveWaveformViewProps = Omit<ViewProps, 'children'> & {
   /** Followed while set; another one, or `null`, starts from nothing. */
   meter?: InstanceType<SharedObject> | null
@@ -207,14 +223,21 @@ export type LiveWaveformViewProps = Omit<ViewProps, 'children'> & {
   flow?: LiveWaveformFlow
   /**
    * How many levels the meter runs behind the newest while they come, so levels that arrive unevenly still flow at an
-   * even speed. `0` shows each level the moment it arrives, and moves as unevenly as they come.
-   * @default 1
+   * even speed, and a level that comes late or a busy main thread doesn't stop the bars. `0` shows each level the moment
+   * it arrives, and moves as unevenly as they come.
+   * @default 2
    */
   lag?: number
   /**
    * Seconds between two levels, for a source with a fixed rate. Measured from the levels as they come when unset.
    */
   pace?: number
+  /**
+   * New bars grow from their shortest to their level as they come in at the edge: from the middle, or up from the
+   * bottom with `bottom` alignment. `true` takes the defaults.
+   * @default false
+   */
+  growIn?: boolean | LiveWaveformGrowIn
   /** @default 'bars' */
   variant?: WaveformVariant
   /** In points. @default 3 */

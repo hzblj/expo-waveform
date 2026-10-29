@@ -103,12 +103,14 @@ import {useSpeechTranscriber} from '@hzblj/expo-speech'
 const transcriber = useSpeechTranscriber({mode: 'dictation'})
 const [transcription, setTranscription] = useState<Transcription | null>(null)
 
-<LiveWaveformView meter={transcription} minBarHeight={3} style={{height: 24, width: 72}} />
+<LiveWaveformView growIn meter={transcription} minBarHeight={3} style={{height: 24, width: 72}} />
 ```
 
 `meter` is a shared object that publishes levels natively, and the view draws each one as it comes: no re-render, no event through JavaScript. [`@hzblj/expo-speech`](https://github.com/hzblj/expo-speech)'s `Transcription` does, for its microphone. Nothing is drawn before the first level, so the meter grows in from the edge its bars come in at. Silence is a row of the shortest bars; with `minBarHeight` equal to `barWidth` it reads as dots.
 
-Levels never arrive evenly (a microphone hands them over in buffers), so the bars don't jump when one arrives: the display's frames move them at the pace levels usually come, `lag` levels behind the newest, speeding up a little when they fall behind and slowing down when they catch up. `lag={0}` shows each level the moment it arrives and moves as unevenly as they come; a source with a fixed rate can say it with `pace` (seconds per level).
+Levels never arrive evenly (a microphone hands them over in buffers, through a main thread that has other work to do), so the bars don't jump when one arrives: each level sets the meter moving toward it at the pace levels usually come, `lag` levels (2) behind the newest, a little faster when it falls behind and a little slower when it catches up. On iOS Core Animation moves the bars, so they keep flowing while the main thread is busy; on Android the display's frames draw them. `lag={0}` shows each level the moment it arrives and moves as unevenly as they come; a source with a fixed rate can say it with `pace` (seconds per level).
+
+`growIn` grows each new bar from its shortest to its level as it comes in at the edge, from the middle, or up from the bottom with `bottom` alignment. `growIn` alone takes 250 ms on `easeOut`; `growIn={{duration: 400, easing: [0.2, 0.9, 0.3, 1]}}` sets the time and the curve: `linear`, `easeIn`, `easeOut`, `easeInOut`, or the four numbers of a CSS `cubic-bezier()`.
 
 `flow` is the way the bars move: `left` (the default) brings new ones in at the right edge, `right` at the left, `up` at the bottom and `down` at the top, the bars lying across the view. It is drawn that way natively, not turned with a style transform, which would leave React Native's layout box and touch area unturned.
 
@@ -119,7 +121,7 @@ A source of your own publishes a root mean square from 0 to 1 per level, from an
 
 Native code can use the meter itself: `LiveWaveformView` is a plain `UIView` on iOS and a plain `View` on Android, with `meter`, `append(level)` and `reset()` (Android's `style` is in pixels).
 
-`LiveWaveformView` takes `meter`, `flow`, `lag` and `pace`, and `variant`, `barWidth`, `barGap`, `barRadius`, `minBarHeight`, `lineWidth`, `alignment`, `scale`, `noiseFloor` and `color` as `WaveformView` does. Native code sets the same on the view (`flow`, `lag`, `pace`, `style`, `scale`, `noiseFloor`, `color`).
+`LiveWaveformView` takes `meter`, `flow`, `lag`, `pace` and `growIn`, and `variant`, `barWidth`, `barGap`, `barRadius`, `minBarHeight`, `lineWidth`, `alignment`, `scale`, `noiseFloor` and `color` as `WaveformView` does. Native code sets the same on the view (`flow`, `lag`, `pace`, `growIn` in seconds, `style`, `scale`, `noiseFloor`, `color`).
 
 ## Without a view
 
