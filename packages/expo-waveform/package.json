@@ -1,6 +1,6 @@
 {
   "name": "@hzblj/expo-waveform",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Native audio waveforms for Expo: analysed on the device (AVFoundation on iOS, MediaCodec on Android), cached, and drawn by a native view that follows playback at the display's frame rate, seeks by drag or tap with haptics, and meters a recording live.",
   "author": "Jan Blazej",
   "license": "MIT",
